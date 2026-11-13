@@ -3,6 +3,16 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import logo from "../public/logo.jpeg";
+import {
+  cargarMusica,
+  desbloquearAudio,
+  empezarMusica,
+  pararMusica,
+  silenciar,
+  sonarBoton,
+  sonarDerrota,
+  sonarVictoria,
+} from "./musica";
 
 // Tiempo objetivo en centésimas de segundo (15,00 s).
 const OBJETIVO_CS = 1500;
@@ -24,6 +34,7 @@ export default function Juego() {
   const [cs, setCs] = useState(0);
   const [intentos, setIntentos] = useState(0);
   const [bloqueado, setBloqueado] = useState(false);
+  const [silencio, setSilencio] = useState(false);
 
   const estadoRef = useRef<Estado>("listo");
   const inicioRef = useRef(0);
@@ -36,6 +47,9 @@ export default function Juego() {
     if (estadoRef.current === "corriendo") {
       const final = Math.floor((performance.now() - inicioRef.current) / 10);
       cancelAnimationFrame(frameRef.current);
+      pararMusica();
+      if (Math.abs(final - OBJETIVO_CS) <= TOLERANCIA_CS) sonarVictoria();
+      else sonarDerrota();
       estadoRef.current = "frenado";
       setCs(final);
       setEstado("frenado");
@@ -54,6 +68,7 @@ export default function Juego() {
       estadoRef.current = "listo";
       setCs(0);
       setEstado("listo");
+      sonarBoton(false);
       return;
     }
 
@@ -61,6 +76,8 @@ export default function Juego() {
     estadoRef.current = "corriendo";
     setCs(0);
     setEstado("corriendo");
+    empezarMusica();
+    sonarBoton(true);
     const tick = () => {
       setCs(Math.floor((performance.now() - inicioRef.current) / 10));
       frameRef.current = requestAnimationFrame(tick);
@@ -71,15 +88,41 @@ export default function Juego() {
   useEffect(() => {
     const alPresionar = (e: KeyboardEvent) => {
       if (e.code !== "Space" && e.code !== "Enter") return;
+      // Sobre el botón de sonido, la tecla solo cambia el sonido.
+      if ((e.target as HTMLElement).closest?.(".sonido")) return;
       e.preventDefault();
       if (!e.repeat) accion();
     };
+    // En pantallas táctiles el audio solo se habilita al soltar el dedo, no al apoyarlo.
+    const gestos = ["pointerup", "touchend", "keydown"] as const;
     window.addEventListener("keydown", alPresionar);
+    gestos.forEach((g) => window.addEventListener(g, desbloquearAudio));
     return () => {
       window.removeEventListener("keydown", alPresionar);
+      gestos.forEach((g) => window.removeEventListener(g, desbloquearAudio));
       cancelAnimationFrame(frameRef.current);
+      pararMusica();
     };
   }, [accion]);
+
+  useEffect(() => {
+    void cargarMusica();
+    try {
+      if (localStorage.getItem("silencio") === "1") {
+        silenciar(true);
+        setSilencio(true);
+      }
+    } catch {}
+  }, []);
+
+  const cambiarSonido = () => {
+    const nuevo = !silencio;
+    setSilencio(nuevo);
+    silenciar(nuevo);
+    try {
+      localStorage.setItem("silencio", nuevo ? "1" : "0");
+    } catch {}
+  };
 
   const diferencia = cs - OBJETIVO_CS;
   const gano = estado === "frenado" && Math.abs(diferencia) <= TOLERANCIA_CS;
@@ -112,6 +155,16 @@ export default function Juego() {
           </div>
         </>
       )}
+
+      <button
+        type="button"
+        className="sonido"
+        onClick={cambiarSonido}
+        aria-pressed={silencio}
+        aria-label={silencio ? "Activar sonido" : "Silenciar sonido"}
+      >
+        {silencio ? "🔇" : "🔊"}
+      </button>
 
       <Image className="logo" src={logo} alt="Santo Burrito SRL · Campus Alexis 2026" priority />
 

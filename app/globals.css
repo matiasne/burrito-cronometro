@@ -1,0 +1,367 @@
+:root {
+  --crema: #fff9e6;
+  --marron: #7a4f35;
+  --marron-oscuro: #4e3020;
+  --amarillo: #ffd91a;
+  --naranja: #f2600c;
+  --verde: #2e9e4f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--crema);
+  color: var(--marron-oscuro);
+  font-family: var(--fuente-texto), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.juego {
+  position: relative;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.logo {
+  width: min(42vw, 180px);
+  height: auto;
+  border-radius: 50%;
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--fuente-titulo), serif;
+  font-weight: 400;
+  font-size: clamp(2rem, 9vw, 2.8rem);
+  line-height: 1;
+  color: var(--marron);
+}
+
+.consigna {
+  margin: 0;
+  font-size: 1.05rem;
+  max-width: 30ch;
+}
+
+.reloj {
+  width: 100%;
+  padding: 18px 8px;
+  border-radius: 24px;
+  background: var(--marron);
+  color: var(--crema);
+  border: 4px solid var(--amarillo);
+  box-shadow: 0 6px 0 var(--marron-oscuro);
+  font-family: var(--fuente-titulo), serif;
+  font-size: clamp(3.6rem, 21vw, 6rem);
+  line-height: 1;
+  display: flex;
+  justify-content: center;
+  user-select: none;
+}
+
+/* Ancho fijo por dígito para que el reloj no tiemble al correr. */
+.digito {
+  display: inline-block;
+  width: 0.72em;
+}
+
+.coma {
+  display: inline-block;
+  width: 0.32em;
+  color: var(--amarillo);
+}
+
+.reloj--gano {
+  background: var(--verde);
+  animation: latido 0.6s ease-in-out 3;
+}
+
+.reloj--perdio {
+  animation: temblor 0.35s linear;
+}
+
+.resultado {
+  min-height: 4.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.resultado p {
+  margin: 0;
+}
+
+.resultado__titulo {
+  font-family: var(--fuente-titulo), serif;
+  font-size: 1.5rem;
+  color: var(--naranja);
+}
+
+.juego--gano .resultado__titulo {
+  color: var(--verde);
+}
+
+.boton {
+  width: 100%;
+  min-height: 84px;
+  border: none;
+  border-radius: 20px;
+  background: var(--amarillo);
+  color: var(--marron-oscuro);
+  box-shadow: 0 6px 0 #c9a800;
+  font-family: var(--fuente-titulo), serif;
+  font-size: 1.7rem;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  transition: transform 0.05s, box-shadow 0.05s, opacity 0.2s;
+}
+
+.boton:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #c9a800;
+}
+
+.boton--frenar {
+  background: var(--naranja);
+  color: #fff;
+  box-shadow: 0 6px 0 #a83f00;
+}
+
+.boton--frenar:active:not(:disabled) {
+  box-shadow: 0 2px 0 #a83f00;
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.boton:focus-visible {
+  outline: 3px solid var(--marron-oscuro);
+  outline-offset: 3px;
+}
+
+.intentos {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.lluvia {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lluvia span {
+  position: absolute;
+  top: -12%;
+  animation: caer linear infinite;
+}
+
+@keyframes caer {
+  to {
+    transform: translateY(125dvh) rotate(360deg);
+  }
+}
+
+@keyframes latido {
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes temblor {
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lluvia {
+    display: none;
+  }
+  .reloj--gano,
+  .reloj--perdio {
+    animation: none;
+  }
+}
+
+/* ---------- Estados de resultado ---------- */
+
+body {
+  transition: background-color 0.25s;
+}
+
+body:has(.juego--perdio) {
+  background: #c81e1e;
+  color: var(--crema);
+}
+
+body:has(.juego--gano) {
+  background: #ffe873;
+}
+
+/* Perder: sacudón de toda la pantalla, logo caído y reloj en rojo oscuro. */
+.juego--perdio {
+  animation: sacudida 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.juego--perdio h1 {
+  color: var(--crema);
+}
+
+.juego--perdio .logo {
+  animation: caida 0.7s ease-out forwards;
+}
+
+.juego--perdio .reloj {
+  background: #6e0d0d;
+  border-color: var(--crema);
+  box-shadow: 0 6px 0 #400707;
+}
+
+.juego--perdio .resultado__titulo {
+  color: var(--amarillo);
+}
+
+.juego--perdio .boton:focus-visible {
+  outline-color: var(--crema);
+}
+
+/* Ganar: rayos girando de fondo, logo saltando y título latiendo. */
+.juego--gano::before {
+  content: "";
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 250vmax;
+  height: 250vmax;
+  margin: -125vmax 0 0 -125vmax;
+  z-index: -1;
+  background: repeating-conic-gradient(#ffd91a 0deg 12deg, #ffe873 12deg 24deg);
+  animation: girar 24s linear infinite;
+}
+
+.juego--gano .logo {
+  animation: salto 0.9s ease-in-out infinite;
+}
+
+.juego--gano .reloj {
+  box-shadow: 0 6px 0 #1c6b33, 0 0 0 0 rgba(46, 158, 79, 0.7);
+  animation: latido 0.6s ease-in-out 3, halo 1.4s ease-out 1.8s infinite;
+}
+
+.juego--gano .resultado__titulo {
+  animation: aparecer 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both, pulso 1s ease-in-out 0.5s infinite;
+}
+
+.juego--perdio .resultado__titulo {
+  animation: aparecer 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.resultado__titulo + p {
+  animation: subir 0.4s ease-out 0.25s both;
+}
+
+/* Al perder los emojis caen una sola vez. */
+.lluvia--perdio span {
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+/* Emoji gigante que estalla en el centro al frenar. */
+.estallido {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  font-size: 9rem;
+  pointer-events: none;
+  animation: estallar 0.9s ease-out forwards;
+}
+
+@keyframes sacudida {
+  10%, 90% { transform: translateX(-3px) rotate(-0.5deg); }
+  20%, 80% { transform: translateX(6px) rotate(0.8deg); }
+  30%, 50%, 70% { transform: translateX(-12px) rotate(-1.2deg); }
+  40%, 60% { transform: translateX(12px) rotate(1.2deg); }
+}
+
+@keyframes caida {
+  40% { transform: rotate(-10deg) translateY(-6px); }
+  100% { transform: rotate(14deg) translateY(4px); filter: grayscale(0.8); }
+}
+
+@keyframes salto {
+  0%, 100% { transform: translateY(0) rotate(-4deg) scale(1); }
+  50% { transform: translateY(-16px) rotate(4deg) scale(1.06); }
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes halo {
+  0% { box-shadow: 0 6px 0 #1c6b33, 0 0 0 0 rgba(46, 158, 79, 0.7); }
+  100% { box-shadow: 0 6px 0 #1c6b33, 0 0 0 22px rgba(46, 158, 79, 0); }
+}
+
+@keyframes aparecer {
+  from { transform: scale(0.2); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulso {
+  50% { transform: scale(1.1) rotate(-2deg); }
+}
+
+@keyframes subir {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes estallar {
+  0% { transform: scale(0.1); opacity: 0; }
+  35% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .juego--perdio,
+  .juego--gano::before,
+  .juego .logo,
+  .juego .reloj,
+  .resultado__titulo,
+  .resultado__titulo + p {
+    animation: none !important;
+  }
+  .estallido {
+    display: none;
+  }
+}
